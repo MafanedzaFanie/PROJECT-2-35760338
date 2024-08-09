@@ -30,4 +30,6 @@ public partial class JobTelemetry
     public string? AdditionalInfo { get; set; }
 
     public DateTime EntryDate { get; set; }
+    public decimal TimeSaved { get; internal set; }
+    public decimal CostSaved { get; internal set; }
 }

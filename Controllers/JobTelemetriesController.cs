@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectTwo_35760338.Models;
 
 namespace ProjectTwo_35760338.Controllers
 {
+   
+
     [Route("api/[controller]")]
     [ApiController]
     public class JobTelemetriesController : ControllerBase
@@ -82,6 +85,40 @@ namespace ProjectTwo_35760338.Controllers
 
             return CreatedAtAction("GetJobTelemetry", new { id = jobTelemetry.Id }, jobTelemetry);
         }
+        //PATCH: api/JobTelemetries/5
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchJobTelemetry(int id, [FromBody] JsonPatchDocument<JobTelemetry> patchDoc)
+        {
+            if (patchDoc == null)
+            {
+                return BadRequest();
+            }
+
+            var jobTelemetry = await _context.JobTelemetries.FindAsync(id);
+
+            if (jobTelemetry == null)
+            {
+                return NotFound();
+            }
+
+            patchDoc.ApplyTo(jobTelemetry, ModelState);
+
+            if (!TryValidateModel(jobTelemetry))
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+    public class Project2DbContext : DbContext
+    {
+        public DbSet<JobTelemetry> JobTelemetries { get; set; }
+
+        public Project2DbContext(DbContextOptions<Project2DbContext> options) : base(options)
+        { }
+    }
 
         // DELETE: api/JobTelemetries/5
         [HttpDelete("{id}")]
@@ -102,6 +139,35 @@ namespace ProjectTwo_35760338.Controllers
         private bool JobTelemetryExists(int id)
         {
             return _context.JobTelemetries.Any(e => e.Id == id);
+        }
+
+        [HttpGet("GetSavings")]
+        public async Task<IActionResult> GetSavings(string projectId, DateTime startDate, DateTime endDate)
+        {
+            // Query the database for telemetry data related to the specified project ID and date range
+            var jobTelemetry = await _context.JobTelemetries
+                .Where(j => j.ProccesId == projectId && j.EntryDate >= startDate && j.EntryDate <= endDate)
+                .ToListAsync();
+
+            if (jobTelemetry == null || !jobTelemetry.Any())
+            {
+                return NotFound();
+            }
+
+            // Calculate cumulative time and cost saved
+            var totalTimeSaved = jobTelemetry.Sum(j => j.TimeSaved);
+            var totalCostSaved = jobTelemetry.Sum(j => j.CostSaved);
+
+            var result = new
+            {
+                ProjectId = projectId,
+                StartDate = startDate,
+                EndDate = endDate,
+                TotalTimeSaved = totalTimeSaved,
+                TotalCostSaved = totalCostSaved
+            };
+
+            return Ok(result);
         }
     }
 }

@@ -141,8 +141,8 @@ namespace ProjectTwo_35760338.Controllers
             return _context.JobTelemetries.Any(e => e.Id == id);
         }
 
-        [HttpGet("GetSavings")]
-        public async Task<IActionResult> GetSavings(string projectId, DateTime startDate, DateTime endDate)
+        [HttpGet("GetSavingsProject")]
+        public async Task<IActionResult> GetSavingsProject(string projectId, DateTime startDate, DateTime endDate)
         {
             // Query the database for telemetry data related to the specified project ID and date range
             var jobTelemetry = await _context.JobTelemetries
@@ -161,6 +161,35 @@ namespace ProjectTwo_35760338.Controllers
             var result = new
             {
                 ProjectId = projectId,
+                StartDate = startDate,
+                EndDate = endDate,
+                TotalTimeSaved = totalTimeSaved,
+                TotalCostSaved = totalCostSaved
+            };
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetSavingsClient")]
+        public async Task<IActionResult> GetSavingsClient(string clientId, DateTime startDate, DateTime endDate)
+        {
+            // Query the database for telemetry data related to the specified project ID and date range
+            var jobTelemetry = await _context.JobTelemetries
+                .Where(j => j.ProccesId == clientId && j.EntryDate >= startDate && j.EntryDate <= endDate)
+                .ToListAsync();
+
+            if (jobTelemetry == null || !jobTelemetry.Any())
+            {
+                return NotFound();
+            }
+
+            // Calculate cumulative time and cost saved
+            var totalTimeSaved = jobTelemetry.Sum(j => j.TimeSaved);
+            var totalCostSaved = jobTelemetry.Sum(j => j.CostSaved);
+
+            var result = new
+            {
+                ProjectId = clientId,
                 StartDate = startDate,
                 EndDate = endDate,
                 TotalTimeSaved = totalTimeSaved,

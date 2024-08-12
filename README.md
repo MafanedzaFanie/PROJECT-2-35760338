@@ -57,3 +57,9 @@ I created the tables on SQL Server Management Studio. Table names:
 + GET/api/Projects{id}: retrieve one Project from the database based on the ID parsed through
 + PUT/api/Projects{id}: update Projects database
 + DELETE/api/Projects{id}: delete an existing Project entry on the database
+
+### API Link
+https://projecttwo35760338-dev.azurewebsites.net/ 
+
+### Resource Group
+https://portal.azure.com/#@nwuac.onmicrosoft.com/resource/subscriptions/4518c73e-ffcc-4821-9457-023e3f2a6f3d/resourceGroups/rgProject2API/overview 
